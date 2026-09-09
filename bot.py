@@ -523,7 +523,8 @@ async def main():
     dp.include_router(router)
 
     print("[+] Telegram bot muvaffaqiyatli ishga tushdi!")
-    await dp.start_polling(bot)
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot, drop_pending_updates=True)
 
 
 if __name__ == "__main__":
