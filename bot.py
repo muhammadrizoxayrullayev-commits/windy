@@ -28,11 +28,12 @@ from aiogram.client.default import DefaultBotProperties
 # .env faylini yuklaymiz
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8987724485:AAEPxu-e0MU-0Rj_x0kywJudd-Bsz4i6Ekg").strip()
 ADMIN_ID = os.getenv("ADMIN_ID", "").strip()
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "@flexyha").strip()
 
 DYNAMIC_ADMIN_ID = None
+IS_SCHOOL_MODE = False
 
 def get_target_admin_id():
     global DYNAMIC_ADMIN_ID
@@ -70,6 +71,12 @@ MUROJAT UCHUN: ⭐️ <b>Telegram stars (yulduz) oberamiz☑️</b>
 🎁🌹 25 talik gift — 5ming so'm💰
 💐🚀🍾 50 talik gift — 10ming so'm💰
 🏆💎💍 100 talik gift — 20ming so'm💰"""
+
+def get_welcome_text():
+    prefix = ""
+    if IS_SCHOOL_MODE:
+        prefix = "🏫 <b>DIQQAT: Admin hozir maktabda/o'qishda!</b>\n<i>Buyurtmangiz qabul qilinadi, lekin dars tugashi bilan tashlab beriladi!</i>\n\n"
+    return prefix + WELCOME_TEXT
 
 
 class OrderState(StatesGroup):
@@ -154,17 +161,66 @@ async def cmd_start(message: Message, state: FSMContext):
     
     user_un = message.from_user.username.lower() if message.from_user and message.from_user.username else ""
     target_un = ADMIN_USERNAME.replace("@", "").lower()
+    is_admin = False
     
-    if DYNAMIC_ADMIN_ID is None or (user_un and user_un == target_un):
+    if (user_un and user_un == target_un) or (ADMIN_ID and str(message.from_user.id) == str(ADMIN_ID)):
         DYNAMIC_ADMIN_ID = message.from_user.id
+        is_admin = True
         logging.info(f"✅ Admin ID avtomatik tanindi va o'rnatildi: {DYNAMIC_ADMIN_ID} (Username: @{user_un})")
+    elif DYNAMIC_ADMIN_ID == message.from_user.id:
+        is_admin = True
+    elif DYNAMIC_ADMIN_ID is None and not ADMIN_ID:
+        if user_un == target_un:
+            DYNAMIC_ADMIN_ID = message.from_user.id
+            is_admin = True
     
     logging.info(f"👤 Botga start bosildi: {message.from_user.full_name} (@{user_un}) - ID: {message.from_user.id}")
     await message.answer(
-        text=WELCOME_TEXT,
+        text=get_welcome_text(),
         parse_mode=ParseMode.HTML,
         reply_markup=get_main_keyboard(),
     )
+    
+    if is_admin:
+        status_txt = "YOQILGAN 🟢" if IS_SCHOOL_MODE else "O'CHIRILGAN ⚪️"
+        await message.answer(
+            text=f"👑 <b>Admin boshqaruv paneli:</b>\n\n"
+                 f"🏫 Maktab/O'qish rejimi: <b>{status_txt}</b>\n\n"
+                 f"📌 <i>Maktab rejimini yoqish/o'chirish:</i> /maktab\n"
+                 f"🆔 <i>Admin ID ni ko'rish:</i> /id",
+            parse_mode=ParseMode.HTML,
+        )
+
+
+@router.message(Command("maktab"))
+async def cmd_maktab(message: Message):
+    global IS_SCHOOL_MODE, DYNAMIC_ADMIN_ID
+    user_un = message.from_user.username.lower() if message.from_user and message.from_user.username else ""
+    target_un = ADMIN_USERNAME.replace("@", "").lower()
+    
+    is_admin = (
+        (user_un and user_un == target_un)
+        or (ADMIN_ID and str(message.from_user.id) == str(ADMIN_ID))
+        or DYNAMIC_ADMIN_ID == message.from_user.id
+        or DYNAMIC_ADMIN_ID is None
+    )
+    
+    if is_admin:
+        DYNAMIC_ADMIN_ID = message.from_user.id
+        IS_SCHOOL_MODE = not IS_SCHOOL_MODE
+        if IS_SCHOOL_MODE:
+            msg = (
+                "🏫 <b>Maktab rejimi YOQILDI! 🟢</b>\n\n"
+                "Endi botga kirgan barcha mijozlarga maktabda/darsda ekanligingiz va buyurtmalar darsdan so'ng tashlab berilishi ko'rsatiladi."
+            )
+        else:
+            msg = (
+                "🏫 <b>Maktab rejimi O'CHIRILDI! ⚪️</b>\n\n"
+                "Bot odatiy ish rejimiga qaytdi."
+            )
+        await message.answer(msg, parse_mode=ParseMode.HTML)
+    else:
+        await message.answer("❌ Bu buyruq faqat bot admini uchun!")
 
 
 @router.message(Command("id"))
@@ -172,9 +228,11 @@ async def cmd_id(message: Message):
     global DYNAMIC_ADMIN_ID
     DYNAMIC_ADMIN_ID = message.from_user.id
     logging.info(f"✅ Admin ID /id orqali o'rnatildi: {DYNAMIC_ADMIN_ID}")
+    status_txt = "YOQILGAN 🟢" if IS_SCHOOL_MODE else "O'CHIRILGAN ⚪️"
     await message.answer(
         text=f"🆔 <b>Sizning Telegram ID ingiz:</b> <code>{message.from_user.id}</code>\n\n"
-             f"✅ Botingiz ushbu ID ga moslandi! Endi barcha buyurtmalar va cheklar sizga keladi.",
+             f"✅ Botingiz ushbu ID ga moslandi! Endi barcha buyurtmalar va cheklar sizga keladi.\n\n"
+             f"🏫 Maktab rejimi: <b>{status_txt}</b> (/maktab orqali o'zgartirish)",
         parse_mode=ParseMode.HTML,
     )
 
@@ -205,7 +263,7 @@ async def cb_cancel_order(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.answer(text="Buyurtma bekor qilindi.")
     await callback.message.answer(
-        text="❌ Buyurtma bekor qilindi.\n\n" + WELCOME_TEXT,
+        text="❌ Buyurtma bekor qilindi.\n\n" + get_welcome_text(),
         parse_mode=ParseMode.HTML,
         reply_markup=get_main_keyboard(),
     )
@@ -301,10 +359,14 @@ async def process_receipt(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         logging.error(f"Adminga buyurtma yuborishda xatolik: {e}")
 
+    school_extra = ""
+    if IS_SCHOOL_MODE:
+        school_extra = "\n\n🏫 <b>Eslatma:</b> Admin hozir o'qishda/maktabda. Buyurtmangiz qabul qilindi va dars tugashi bilan tezda tashlab beriladi!"
+
     await state.clear()
     await message.answer(
         text="✅ <b>Buyurtmangiz va to'lov chekingiz adminga yuborildi!</b>\n\n"
-        "Admin to'lovni tekshirib, Robux / Stars ni tez orada yetkazib beradi va sizga xabar yuboriladi.",
+        "Admin to'lovni tekshirib, Robux / Stars ni tez orada yetkazib beradi va sizga xabar yuboriladi." + school_extra,
         parse_mode=ParseMode.HTML,
         reply_markup=get_main_keyboard(),
     )
