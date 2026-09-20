@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Windy — Aerodynamic Typing Server & Multi-Language Speed Test</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Windy is a modern, aerodynamic typing speed test platform with multi-language support (Uzbek, Japanese, English, Russian, Arabic), mechanical switch soundscapes, smooth caret physics, and 24/7 offline reliability.">
+  <meta name="keywords" content="typing test, monkeytype alternative, windy typing, uzbek typing test, japanese typing, mechanical keyboard sounds, wpm speed test">
+  <meta name="author" content="Windy Typing Server">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/typing.css">
+  <link rel="stylesheet" href="styles/results.css">
+</head>
+<body data-theme="windy-frost">
+
+  <!-- Ambient Dynamic Wind Glow & Streamlines -->
+  <div class="ambient-background">
+    <div class="ambient-aura"></div>
+    <div class="ambient-aura-2"></div>
+    <canvas id="wind-canvas" class="wind-canvas"></canvas>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Navigation & Header -->
+    <header class="app-header">
+      <div class="brand-section" id="brand-home-btn" title="Windy Typing Server">
+        <div class="brand-logo-wrap">
+          <img src="assets/logo.svg" alt="Windy Logo" class="brand-logo-img">
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">
+            Windy <span class="brand-badge">24/7 Safe</span>
+          </h1>
+          <span class="brand-subtitle">Aerodynamic typing server</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Mechanical Sound Profile Switcher -->
+        <button class="icon-btn active-glow" id="sound-toggle-btn" title="Mexanik ovoz profili (Thock, Clicky, Cream, Bubble, Typewriter, Off)">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span id="sound-btn-text">THOCK</span>
+        </button>
+
+        <!-- Mechanical Sound Volume Boost Button -->
+        <button class="icon-btn" id="volume-toggle-btn" title="Ovoz balandligi (100%, 150% MAX Boost, 50%)">
+          <svg viewBox="0 0 24 24" id="volume-icon">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+          <span id="volume-btn-text">100%</span>
+        </button>
+
+        <!-- Theme Switcher -->
+        <button class="icon-btn" id="theme-toggle-btn" title="Switch Theme">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.59 10.56 20 12 20c4.97 0 9-4.03 9-9 0-4.97-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+          </svg>
+          <span>Theme</span>
+        </button>
+
+        <!-- Shortcuts -->
+        <button class="icon-btn" id="shortcuts-info-btn" title="Keyboard Shortcuts">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Config Pill Bar (Modes, Modifiers, Limits) -->
+    <div class="config-bar-wrapper">
+      <div class="config-bar" role="toolbar" aria-label="Typing Configuration">
+        <!-- Modifiers -->
+        <div class="config-group">
+          <button class="config-btn" id="toggle-punct-btn" title="Toggle Punctuation">
+            @ punctuation
+          </button>
+          <button class="config-btn" id="toggle-num-btn" title="Toggle Numbers">
+            # numbers
+          </button>
+        </div>
+
+        <span class="config-divider"></span>
+
+        <!-- Modes -->
+        <div class="config-group">
+          <button class="config-btn mode-btn active" data-mode="time" title="Time Mode">
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+            time
+          </button>
+          <button class="config-btn mode-btn" data-mode="words" title="Words Mode">
+            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/></svg>
+            words
+          </button>
+          <button class="config-btn mode-btn" data-mode="quote" title="Quote Mode">
+            <svg viewBox="0 0 24 24"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>
+            quote
+          </button>
+          <button class="config-btn mode-btn" data-mode="custom" title="Custom Text">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            custom
+          </button>
+        </div>
+
+        <span class="config-divider"></span>
+
+        <!-- Sub-options: Time -->
+        <div class="config-group" id="time-subgroup">
+          <button class="config-btn time-opt-btn active" data-time="15">15</button>
+          <button class="config-btn time-opt-btn" data-time="30">30</button>
+          <button class="config-btn time-opt-btn" data-time="60">60</button>
+          <button class="config-btn time-opt-btn" data-time="120">120</button>
+        </div>
+
+        <!-- Sub-options: Words -->
+        <div class="config-group" id="word-subgroup" style="display: none;">
+          <button class="config-btn word-opt-btn" data-words="10">10</button>
+          <button class="config-btn word-opt-btn active" data-words="25">25</button>
+          <button class="config-btn word-opt-btn" data-words="50">50</button>
+          <button class="config-btn word-opt-btn" data-words="100">100</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Language Quick Trigger Indicator -->
+    <div class="language-indicator-wrap">
+      <button class="lang-pill-btn" id="quick-lang-pill" title="Switch Language (Ctrl+Shift+P)">
+        <span class="lang-flag" id="lang-flag-icon">🇺🇿</span>
+        <span id="lang-btn-text">Uzbek (Latin)</span>
+        <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 24 24">
+          <path d="M7 10l5 5 5-5z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Active Typing Arena View -->
+    <main class="typing-view" id="typing-view">
+      
+      <!-- Futuristic Aerodynamic Caps Lock Alert -->
+      <div class="caps-lock-warning" id="caps-lock-warning" role="alert" aria-live="assertive">
+        <div class="caps-pulse-dot"></div>
+        <svg class="caps-lock-icon" viewBox="0 0 24 24">
+          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+        </svg>
+        <span class="caps-main-text">CAPS LOCK YOQILGAN</span>
+        <span class="caps-sub-text">Katta harflar rejimi faol</span>
+      </div>
+
+      <!-- Aerodynamic Speed Cockpit Deck -->
+      <div class="typing-deck" id="typing-deck">
+        
+        <!-- Glowing Top Progress Stream -->
+        <div class="deck-progress-bar-track">
+          <div class="deck-progress-bar-fill" id="deck-progress-fill"></div>
+        </div>
+
+        <!-- Corner Cyber Accents -->
+        <span class="cyber-corner top-left"></span>
+        <span class="cyber-corner top-right"></span>
+        <span class="cyber-corner bottom-left"></span>
+        <span class="cyber-corner bottom-right"></span>
+
+        <!-- Live Cockpit HUD Display -->
+        <div class="typing-hud" id="typing-hud">
+          <div class="hud-cluster left">
+            <div class="hud-item timer-item">
+              <span class="hud-label">TIME</span>
+              <span class="hud-val" id="hud-timer">15</span>
+            </div>
+          </div>
+
+          <div class="hud-cluster center">
+            <div class="hud-item wpm-item">
+              <span class="hud-label">WPM</span>
+              <span class="hud-val" id="hud-live-wpm">0</span>
+            </div>
+            <div class="hud-item acc-item">
+              <span class="hud-label">ACC</span>
+              <span class="hud-val" id="hud-live-acc">100%</span>
+            </div>
+          </div>
+
+          <div class="hud-cluster right">
+            <div class="hud-item streak-item" id="hud-streak-item">
+              <span class="hud-label">STREAK</span>
+              <span class="hud-val streak-val" id="hud-live-streak">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Words Field -->
+        <div class="typing-arena" id="typing-arena">
+          <input type="text" id="keystroke-receiver" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" aria-label="Keystroke input">
+          <div class="caret blink" id="caret"></div>
+          <div class="words-wrapper" id="words">
+            <!-- Dynamically populated letters and words -->
+          </div>
+        </div>
+
+        <!-- Deck Bottom Controls & Real-Time Equalizer -->
+        <div class="deck-footer">
+          <div class="deck-sound-meter" id="deck-sound-meter" title="Mechanical Audio Active">
+            <span class="meter-bar bar-1"></span>
+            <span class="meter-bar bar-2"></span>
+            <span class="meter-bar bar-3"></span>
+            <span class="meter-bar bar-4"></span>
+          </div>
+
+          <button class="restart-btn" id="restart-test-btn" title="Qaytadan boshlash (Tab / Esc)">
+            <svg viewBox="0 0 24 24">
+              <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            </svg>
+          </button>
+
+          <span class="deck-shortcut-hint">tab / esc — qayta boshlash</span>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Results Analytics Dashboard (Shown when test completes) -->
+    <section class="results-view" id="results-view">
+      <div class="results-grid">
+        
+        <!-- Hero Primary Stats (WPM & Accuracy) -->
+        <div class="results-primary-stats">
+          <div class="stat-card-hero">
+            <div class="hero-stat-label">
+              WPM <span class="pb-badge" id="pb-badge" style="display: none;">NEW BEST!</span>
+            </div>
+            <div class="hero-stat-val" id="res-wpm">0</div>
+            <div class="hero-stat-sub">Words per minute</div>
+          </div>
+
+          <div class="stat-card-hero">
+            <div class="hero-stat-label">ACCURACY</div>
+            <div class="hero-stat-val" id="res-acc">100%</div>
+            <div class="hero-stat-sub">Overall accuracy</div>
+          </div>
+        </div>
+
+        <!-- Canvas Spline Chart -->
+        <div class="results-chart-card">
+          <div class="chart-header">
+            <span class="chart-title">Speed Progression</span>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-dot wpm"></span> WPM</span>
+              <span class="legend-item"><span class="legend-dot raw"></span> Raw</span>
+              <span class="legend-item"><span class="legend-dot error"></span> Errors</span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrap">
+            <canvas id="speed-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secondary Metrics Row -->
+      <div class="results-secondary-stats">
+        <div class="secondary-stat-card">
+          <span class="sec-stat-label">Test Type</span>
+          <span class="sec-stat-val" id="res-test-type">time 15s</span>
+        </div>
+        <div class="secondary-stat-card">
+          <span class="sec-stat-label">Raw WPM</span>
+          <span class="sec-stat-val" id="res-raw-wpm">0</span>
+        </div>
+        <div class="secondary-stat-card">
+          <span class="sec-stat-label">Characters</span>
+          <span class="sec-stat-val" id="res-chars">0/0/0/0</span>
+          <span class="sec-stat-sub">cor / err / ext / mis</span>
+        </div>
+        <div class="secondary-stat-card">
+          <span class="sec-stat-label">Consistency</span>
+          <span class="sec-stat-val" id="res-consistency">100%</span>
+        </div>
+        <div class="secondary-stat-card">
+          <span class="sec-stat-label">Time</span>
+          <span class="sec-stat-val" id="res-time">15s</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="results-actions">
+        <button class="action-btn primary" id="res-next-btn">
+          <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          Next Test
+        </button>
+        <button class="action-btn" id="res-repeat-btn">
+          <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          Repeat Test
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-shortcuts">
+        <span><kbd>tab</kbd> or <kbd>esc</kbd> - restart test</span>
+        <span><kbd>ctrl</kbd> + <kbd>shift</kbd> + <kbd>p</kbd> - languages</span>
+      </div>
+      <nav class="footer-nav">
+        <a href="#safe">🔒 100% Client-Side Safe</a>
+        <a href="#uptime">⚡ 24/7 Server</a>
+        <a href="#offline">🌐 Offline Ready</a>
+      </nav>
+    </footer>
+
+  </div>
+
+  <!-- ==========================================================================
+       MODALS
+       ========================================================================== -->
+
+  <!-- Language Picker Modal -->
+  <div class="modal-backdrop" id="language-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg style="width: 20px; height: 20px; fill: var(--accent-primary);" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+          Select Language
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal">
+          <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-search-wrap">
+          <svg class="modal-search-icon" viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+          <input type="text" id="lang-search-input" placeholder="Search languages (Uzbek, Japanese, English...)" autocomplete="off">
+        </div>
+        <div class="language-grid" id="language-items-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Themes Modal -->
+  <div class="modal-backdrop" id="theme-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg style="width: 20px; height: 20px; fill: var(--accent-primary);" viewBox="0 0 24 24">
+            <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.59 10.56 20 12 20c4.97 0 9-4.03 9-9 0-4.97-4.03-9-9-9z"/>
+          </svg>
+          Color Themes
+        </div>
+        <button class="modal-close-btn" aria-label="Close modal">
+          <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="theme-grid">
+          
+          <div class="theme-card active" data-theme="windy-frost">
+            <div class="theme-preview-palette">
+              <span style="background: #0b0f17;"></span>
+              <span style="background: #00f2fe;"></span>
+              <span style="background: #38ef7d;"></span>
+              <span style="background: #f1f5f9;"></span>
+            </div>
+            <span class="theme-name">Windy Frost (Default)</span>
+          </div>
+
+          <div class="theme-card" data-theme="cyber-breeze">
+            <div class="theme-preview-palette">
+              <span style="background: #070a14;"></span>
+              <span style="background: #00ffea;"></span>
+              <span style="background: #ff007f;"></span>
+              <span style="background: #f8fafc;"></span>
+            </div>
+            <span class="theme-name">Cyber Breeze</span>
+          </div>
+
+          <div class="theme-card" data-theme="dark-zephyr">
+            <div class="theme-preview-palette">
+              <span style="background: #09090b;"></span>
+              <span style="background: #4ade80;"></span>
+              <span style="background: #27272a;"></span>
+              <span style="background: #fafafa;"></span>
+            </div>
+            <span class="theme-name">Dark Zephyr</span>
+          </div>
+
+          <div class="theme-card" data-theme="sakura-gale">
+            <div class="theme-preview-palette">
+              <span style="background: #120d18;"></span>
+              <span style="background: #f472b6;"></span>
+              <span style="background: #c084fc;"></span>
+              <span style="background: #fdf2f8;"></span>
+            </div>
+            <span class="theme-name">Sakura Gale</span>
+          </div>
+
+          <div class="theme-card" data-theme="serika-wind">
+            <div class="theme-preview-palette">
+              <span style="background: #181a1b;"></span>
+              <span style="background: #e2b714;"></span>
+              <span style="background: #646669;"></span>
+              <span style="background: #d1d0c5;"></span>
+            </div>
+            <span class="theme-name">Serika Wind</span>
+          </div>
+
+          <div class="theme-card" data-theme="nordic-sky">
+            <div class="theme-preview-palette">
+              <span style="background: #0d1520;"></span>
+              <span style="background: #38bdf8;"></span>
+              <span style="background: #818cf8;"></span>
+              <span style="background: #f8fafc;"></span>
+            </div>
+            <span class="theme-name">Nordic Sky</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Text Modal -->
+  <div class="modal-backdrop" id="custom-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Custom Practice Text</div>
+        <button class="modal-close-btn" aria-label="Close modal">
+          <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-sub);">
+          Paste any text in any language (e.g. Japanese kanji, Uzbek poetry, code snippet, or article):
+        </p>
+        <textarea class="custom-textarea" id="custom-text-input" placeholder="Paste your text here..."></textarea>
+        <div class="modal-actions">
+          <button class="btn-secondary modal-cancel-btn">Cancel</button>
+          <button class="btn-primary" id="custom-text-save-btn">Practice This Text</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcuts Modal -->
+  <div class="modal-backdrop" id="shortcuts-modal">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title">Keyboard Shortcuts</div>
+        <button class="modal-close-btn" aria-label="Close modal">
+          <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-row">
+          <span>Restart Test</span>
+          <span class="shortcut-key">Tab</span> or <span class="shortcut-key">Esc</span>
+        </div>
+        <div class="shortcut-row">
+          <span>Language Search</span>
+          <span class="shortcut-key">Ctrl + Shift + P</span>
+        </div>
+        <div class="shortcut-row">
+          <span>Delete full word</span>
+          <span class="shortcut-key">Ctrl + Backspace</span>
+        </div>
+        <div class="shortcut-row">
+          <span>Focus input</span>
+          <span class="shortcut-key">Click Arena</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Script (ES Module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

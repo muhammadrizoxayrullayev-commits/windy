@@ -1,0 +1,22 @@
+{
+  "name": "windy-typing-server",
+  "version": "1.0.0",
+  "description": "Windy - Next-Generation Aerodynamic Multi-Language Typing Platform",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "typing",
+    "typing-test",
+    "monkeytype",
+    "wpm",
+    "uzbek",
+    "japanese",
+    "speed-test"
+  ],
+  "author": "Windy",
+  "license": "MIT"
+}
