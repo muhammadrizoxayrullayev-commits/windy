@@ -1,0 +1,21 @@
+{
+  "name": "Windy Typing",
+  "short_name": "Windy",
+  "description": "Windy Typing — Aerodynamic Multi-Language Speed Test",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#00f2fe",
+  "icons": [
+    {
+      "src": "assets/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
